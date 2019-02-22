@@ -1,0 +1,46 @@
+version: '3'
+
+# NOTES :
+
+# Comments are Ok with this format
+# REMINDER : BEWARE of <tab>, they are not accepted !!
+# connect to 127.0.0.1:4444 to test operation
+# see dockerfile for hub or nodebase for env variables available
+# Remote host with full url is needed for swarm to work !
+# default overlay network is created, with name resolution available.
+
+# run with: docker stack deploy --compose-file selgrid.yaml selstack
+
+
+
+services:
+  firefox:
+    image: selenium/node-firefox:3.14
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - hub
+    environment:
+      HUB_HOST: hub
+      REMOTE_HOST: "http://firefox:5555"
+      NODE_MAX_INSTANCES: 5
+      NODE_MAX_SESSION: 5
+
+  chrome:
+    image: selenium/node-chrome:3.14
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - hub
+    environment:
+      HUB_HOST: hub
+      REMOTE_HOST: "http://chrome:5555"
+      NODE_MAX_INSTANCES: 5
+      NODE_MAX_SESSION: 5
+
+  hub:
+    image: selenium/hub:3.14
+    ports:
+      - "4444:4444"
+    environment:
+      GRID_MAX_SESSION: 8
