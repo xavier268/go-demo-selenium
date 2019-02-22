@@ -1,14 +1,14 @@
 package main
 
 import (
+	"fmt"
 
-"fmt"
- "github.com/tebeka/selenium"
+	"github.com/tebeka/selenium"
 )
 
 var debug = true
 
 func main() {
-  selenium.SetDebug(debug)
+	selenium.SetDebug(debug)
 	fmt.Println("Demo of using the GO selenium client")
 }

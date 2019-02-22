@@ -8,10 +8,10 @@ import (
 )
 
 func TestChromeStatus(t *testing.T) {
-	selenium.SetDebug(false)
+	selenium.SetDebug(true)
 	caps := selenium.Capabilities{
 		"browserName": "chrome",
-		"platform":    "LINUX"}
+		"platform":    "linux"}
 	wd, e1 := selenium.NewRemote(caps, "http://127.0.0.1:4444/wd/hub")
 	fatal(e1)
 	defer wd.Quit()
@@ -21,10 +21,14 @@ func TestChromeStatus(t *testing.T) {
 }
 
 func TestFirefoxStatus(t *testing.T) {
-	selenium.SetDebug(false)
+
+	//t.Log("The firefox browser generates a nil pointer panic in NewSession, I suspect firefox does not comply with new W3C capability format")
+	//t.FailNow()
+
+	selenium.SetDebug(true)
 	caps := selenium.Capabilities{
 		"browserName": "firefox",
-		"platform":    "LINUX"}
+		"platform":    "linux"}
 	wd, e1 := selenium.NewRemote(caps, "http://127.0.0.1:4444/wd/hub")
 	fatal(e1)
 	defer wd.Quit()
