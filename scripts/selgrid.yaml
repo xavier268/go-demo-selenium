@@ -15,7 +15,7 @@ version: '3.7'
 
 services:
   firefox:
-    image: selenium/node-firefox:3.14
+    image: selenium/node-firefox:latest
     volumes:
       - /dev/shm:/dev/shm
     depends_on:
@@ -27,7 +27,7 @@ services:
       NODE_MAX_SESSION: 5
 
   chrome:
-    image: selenium/node-chrome:3.14
+    image: selenium/node-chrome:latest
     volumes:
       - /dev/shm:/dev/shm
     depends_on:
@@ -39,7 +39,7 @@ services:
       NODE_MAX_SESSION: 5
 
   hub:
-    image: selenium/hub:3.14
+    image: selenium/hub:latest
     ports:
       - "4444:4444"
     environment:
