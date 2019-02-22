@@ -19,6 +19,14 @@ func TestChromeStatus(t *testing.T) {
 	fatal(e2)
 	fmt.Printf("\nStatus of webdriver : %v\n", st)
 }
+func TestDefaultStatus(t *testing.T) {
+	selenium.SetDebug(true)
+	wd := NewWebDriver()
+	defer wd.Quit()
+	st, e2 := wd.Status()
+	fatal(e2)
+	fmt.Printf("\nStatus of webdriver : %v\n", st)
+}
 
 func TestFirefoxStatus(t *testing.T) {
 

@@ -28,5 +28,4 @@ func main() {
 	}
 	c, _ := we.Text()
 	fmt.Printf("\nPage content : %v\n", c)
-
 }
