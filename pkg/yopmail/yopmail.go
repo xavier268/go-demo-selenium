@@ -14,20 +14,30 @@ import (
 
 // Message contains a single message
 type Message struct {
-	from       string
-	topic      string
-	content    string
-	received   time.Time
-	downloaded time.Time
+	from        string
+	topic       string
+	content     string
+	htmlContent string
+	url         string
+	received    time.Time
+	downloaded  time.Time
 }
 
 func (m *Message) String() string {
-	return fmt.Sprintf("\nMessage dump\n\tfrom       : %v\n\ttopic      : %v\n\treceived   : %v\n\tdownloaded : %v\n\tcontent    : %v\n",
+	return fmt.Sprintf(
+		"\nMessage :"+
+			"\n\tfrom       : %v"+
+			"\n\ttopic      : %v\n\treceived   : %v"+
+			"\n\tdownloaded : %v\n\turl        : %v"+
+			"\n\tcontent    : %v\n\thtmlContent: %v\n",
 		m.from,
 		m.topic,
-		m.content,
 		m.received,
-		m.downloaded)
+		m.downloaded,
+		m.url,
+		m.content,
+		m.htmlContent,
+	)
 }
 
 // HubURL defines the url to connect to the selenium Hub
@@ -86,6 +96,14 @@ func (mb *Mailbox) Close() {
 	mb.user = ""
 }
 
+// NewMessage creates a time-stamped new message.
+func NewMessage() (mess *Message) {
+	mess = new(Message)
+	mess.downloaded = time.Now()
+	return mess
+}
+
+// readMessage reads the current message
 func (mb *Mailbox) readMessage() (mess *Message) {
 	if mb.wd == nil {
 		panic("Attempt to readMessage from a closed mailbox !")
@@ -94,14 +112,15 @@ func (mb *Mailbox) readMessage() (mess *Message) {
 	mb.wd.SwitchFrame("ifmail")
 	defer mb.wd.SwitchFrame("")
 
-	mess = new(Message)
-	mess.downloaded = time.Now()
+	mess = NewMessage()
 
 	we, e := mb.wd.FindElement(selenium.ByTagName, "body")
 	if e != nil {
 		panic(e)
 	}
+
 	var w selenium.WebElement
+
 	w, e = we.FindElement(selenium.ByXPATH, "(.//div[@id='mailhaut']/div)[1]")
 	if e != nil {
 		log.Print(e)
@@ -122,7 +141,7 @@ func (mb *Mailbox) readMessage() (mess *Message) {
 		log.Print(e)
 	} else {
 		tt, _ := w.Text()
-		mess.received, _ = time.ParseInLocation(YopTimeFormat, tt, yopLocation)
+		mess.received, _ = time.Parse(YopTimeFormat, tt)
 	}
 
 	w, _ = we.FindElement(selenium.ByXPATH, ".//div[@id='mailmillieu']")
@@ -130,7 +149,43 @@ func (mb *Mailbox) readMessage() (mess *Message) {
 		log.Print(e)
 	} else {
 		mess.content, _ = w.Text()
+		mess.htmlContent, _ = w.GetAttribute("innerHTML")
 	}
 
 	return mess
+}
+
+func (mb *Mailbox) countMessages() int {
+	mb.wd.SwitchFrame("ifinbox")
+	defer mb.wd.SwitchFrame("")
+
+	t, e := mb.wd.FindElements(selenium.ByXPATH, ".//body//div[@class='m']")
+	if e != nil {
+		log.Println("No message found")
+		log.Println(e)
+		return 0
+	}
+	return len(t)
+}
+
+// readMessageNo read the message specified by its index (1-based)
+// If out of bound index, return nil.
+func (mb *Mailbox) readMessageNo(n int) (mess *Message) {
+	mb.wd.SwitchFrame("ifinbox")
+	defer mb.wd.SwitchFrame("")
+	t, e := mb.wd.FindElement(selenium.ByID, fmt.Sprintf("m%d", n))
+	if e != nil {
+		log.Println("No message found")
+		log.Println(e)
+		return nil
+	}
+	t, e = t.FindElement(selenium.ByTagName, "a")
+	if e != nil {
+		log.Println("Message found, but no message link")
+		log.Println(e)
+		return nil
+	}
+	t.Click()
+	mb.wd.SwitchFrame("")
+	return mb.readMessage()
 }
