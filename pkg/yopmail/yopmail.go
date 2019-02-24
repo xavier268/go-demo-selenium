@@ -102,7 +102,7 @@ func NewMailbox(user string) (mb *Mailbox) {
 	if e4 := we.Submit(); e4 != nil {
 		panic(e4)
 	}
-	return &Mailbox{wd, user}
+	return &Mailbox{wd: wd, user: user}
 }
 
 // Close an existing mailbox
@@ -112,22 +112,6 @@ func (mb *Mailbox) Close() {
 		mb.wd = nil
 	}
 	mb.user = ""
-}
-
-// readMessage reads the current message
-func (mb *Mailbox) readMessage() (mess *Message) {
-	if mb.wd == nil {
-		panic("Attempt to readMessage from a closed mailbox !")
-	}
-	// Enter the message frame
-	mb.wd.SwitchFrame("ifmail")
-	defer mb.wd.SwitchFrame("")
-
-	mess = NewMessage()
-	mess.to = mb.user
-
-	mess.parse(mb)
-	return mess
 }
 
 // parse message from the provided mailbox
@@ -172,9 +156,9 @@ func (m *Message) parse(mb *Mailbox) {
 	}
 }
 
-func (mb *Mailbox) countMessages() int {
+func (mb *Mailbox) CountMessages() int {
+	mb.wd.SwitchFrame("")
 	mb.wd.SwitchFrame("ifinbox")
-	defer mb.wd.SwitchFrame("")
 
 	t, e := mb.wd.FindElements(selenium.ByXPATH, ".//body//div[@class='m']")
 	if e != nil {
@@ -185,11 +169,11 @@ func (mb *Mailbox) countMessages() int {
 	return len(t)
 }
 
-// readMessageNo read the message specified by its index (1-based)
+// ReadMessage read the message specified by its index (1-based)
 // If out of bound index, return nil.
-func (mb *Mailbox) readMessageNo(n int) (mess *Message) {
+func (mb *Mailbox) ReadMessage(n int) (mess *Message) {
+	mb.wd.SwitchFrame("")
 	mb.wd.SwitchFrame("ifinbox")
-	defer mb.wd.SwitchFrame("")
 	t, e := mb.wd.FindElement(selenium.ByID, fmt.Sprintf("m%d", n))
 	if e != nil {
 		log.Println("No message found")
@@ -202,7 +186,22 @@ func (mb *Mailbox) readMessageNo(n int) (mess *Message) {
 		log.Println(e)
 		return nil
 	}
+	lk, e := t.GetAttribute("href")
+	if e != nil {
+		log.Println("Message found, but no message link")
+		log.Println(e)
+		return nil
+	}
+
+	mess = NewMessage()
+	mess.url = lk
+	mess.to = mb.user
+
 	t.Click()
+
 	mb.wd.SwitchFrame("")
-	return mb.readMessage()
+	mb.wd.SwitchFrame("ifmail")
+	mess.parse(mb)
+
+	return mess
 }
