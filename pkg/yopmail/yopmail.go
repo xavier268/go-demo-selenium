@@ -12,6 +12,18 @@ import (
 // Yopmail provides access to anonymous mail
 // based on the public webmail www.yopmail.com
 
+// HubURL defines the url to connect to the selenium Hub
+var HubURL = "http://127.0.0.1:4444/wd/hub"
+
+var debug = false
+var yopLocation, _ = time.LoadLocation("Europe/Berlin")
+
+// YopURL is the URL to the webmail site
+const YopURL = "http://yopmail.com"
+
+// YopTimeFormat is the time layout for Yop dates
+const YopTimeFormat = "Date: 2006-01-02 15:04"
+
 // Message contains a single message
 type Message struct {
 	to          string
@@ -24,7 +36,27 @@ type Message struct {
 	downloaded  time.Time
 }
 
+// NewMessage creates a time-stamped new message.
+func NewMessage() (mess *Message) {
+	mess = new(Message)
+	mess.downloaded = time.Now()
+	return mess
+}
+
 func (m *Message) String() string {
+	if debug || len(m.content) < 12 || len(m.htmlContent) < 12 {
+		return fmt.Sprintf(
+			"\nMessage :"+
+				"\n\tto         : %v\n\tfrom       : %v"+
+				"\n\ttopic      : %v\n\treceived   : %v"+
+				"\n\tdownloaded : %v\n\turl        : %v"+
+				"\n\tcontent    : %v\n\thtmlContent: %v\n",
+			m.to, m.from,
+			m.topic, m.received,
+			m.downloaded, m.url,
+			m.content, m.htmlContent,
+		)
+	}
 	return fmt.Sprintf(
 		"\nMessage :"+
 			"\n\tto         : %v\n\tfrom       : %v"+
@@ -34,21 +66,9 @@ func (m *Message) String() string {
 		m.to, m.from,
 		m.topic, m.received,
 		m.downloaded, m.url,
-		m.content, m.htmlContent,
+		m.content[:10]+"[ ... truncated...]", m.htmlContent[:10]+"[ ... truncated...]",
 	)
 }
-
-// HubURL defines the url to connect to the selenium Hub
-var HubURL = "http://127.0.0.1:4444/wd/hub"
-
-var debug = false
-var yopLocation, _ = time.LoadLocation("Europe/Berlin")
-
-// YopURL is the URL to the webmail site
-const YopURL = "http://yopmail.com"
-
-// YopTimeFormat is the time layout for Yop dates
-const YopTimeFormat = "Date: 2006-01-02 15:04"
 
 // SetDebug (de)activates the debug mode
 func SetDebug(flag bool) {
@@ -94,13 +114,6 @@ func (mb *Mailbox) Close() {
 	mb.user = ""
 }
 
-// NewMessage creates a time-stamped new message.
-func NewMessage() (mess *Message) {
-	mess = new(Message)
-	mess.downloaded = time.Now()
-	return mess
-}
-
 // readMessage reads the current message
 func (mb *Mailbox) readMessage() (mess *Message) {
 	if mb.wd == nil {
@@ -111,7 +124,15 @@ func (mb *Mailbox) readMessage() (mess *Message) {
 	defer mb.wd.SwitchFrame("")
 
 	mess = NewMessage()
+	mess.to = mb.user
 
+	mess.parse(mb)
+	return mess
+}
+
+// parse message from the provided mailbox
+// Assume we are at the root of the message page/iframe
+func (mess *Message) parse(mb *Mailbox) {
 	we, e := mb.wd.FindElement(selenium.ByTagName, "body")
 	if e != nil {
 		panic(e)
@@ -149,8 +170,6 @@ func (mb *Mailbox) readMessage() (mess *Message) {
 		mess.content, _ = w.Text()
 		mess.htmlContent, _ = w.GetAttribute("innerHTML")
 	}
-
-	return mess
 }
 
 func (mb *Mailbox) countMessages() int {

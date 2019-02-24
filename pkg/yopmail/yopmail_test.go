@@ -45,12 +45,12 @@ func TestReadMessageNo(t *testing.T) {
 	defer mb.Close()
 
 	m := mb.readMessageNo(1)
-	fmt.Printf("\n#1 - %v\n", m)
+	fmt.Printf("\n--------------#1------------------ %v\n", m)
 
 	m = mb.readMessageNo(5)
-	fmt.Printf("\n#5 - %v\n", m)
+	fmt.Printf("\n--------------#5------------------ %v\n", m)
 
 	m = mb.readMessageNo(25)
-	fmt.Printf("\n#25 - %v\n", m)
+	fmt.Printf("\n--------------#25----------------- %v\n", m)
 
 }
