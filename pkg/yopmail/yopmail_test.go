@@ -54,3 +54,16 @@ func TestReadMessageNo(t *testing.T) {
 	fmt.Printf("\n--------------#25----------------- %v\n", m)
 
 }
+
+func TestScrollPage(t *testing.T) {
+
+	mb := NewMailbox("arthur")
+	defer mb.Close()
+
+	var e error
+	for i := 1; e == nil; i++ {
+		fmt.Printf("\nPage %d : %d messages", i, mb.CountMessages())
+		e = mb.nextPage()
+	}
+	fmt.Println()
+}

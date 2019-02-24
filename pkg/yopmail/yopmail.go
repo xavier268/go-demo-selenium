@@ -205,3 +205,17 @@ func (mb *Mailbox) ReadMessage(n int) (mess *Message) {
 
 	return mess
 }
+
+// nextPage moves to the next message page
+// Do not change iframe - assumes you are still in listing frame
+func (mb *Mailbox) nextPage() (e error) {
+	w, e := mb.wd.FindElement(selenium.ByXPATH, ".//a[@class='igif next']")
+	if e != nil {
+		return e
+	}
+	e = w.Click()
+	if e != nil {
+		return e
+	}
+	return nil
+}
