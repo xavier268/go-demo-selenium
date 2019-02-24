@@ -132,7 +132,7 @@ func (mb *Mailbox) readMessage() (mess *Message) {
 
 // parse message from the provided mailbox
 // Assume we are at the root of the message page/iframe
-func (mess *Message) parse(mb *Mailbox) {
+func (m *Message) parse(mb *Mailbox) {
 	we, e := mb.wd.FindElement(selenium.ByTagName, "body")
 	if e != nil {
 		panic(e)
@@ -144,7 +144,7 @@ func (mess *Message) parse(mb *Mailbox) {
 	if e != nil {
 		log.Print(e)
 	} else {
-		mess.topic, _ = w.Text()
+		m.topic, _ = w.Text()
 	}
 
 	w, _ = we.FindElement(selenium.ByXPATH, "(.//div[@id='mailhaut']/div)[2]")
@@ -152,7 +152,7 @@ func (mess *Message) parse(mb *Mailbox) {
 		log.Print(e)
 	} else {
 		tt, _ := w.Text()
-		mess.from = strings.Split(tt, "From: ")[1]
+		m.from = strings.Split(tt, "From: ")[1]
 	}
 
 	w, _ = we.FindElement(selenium.ByXPATH, "(.//div[@id='mailhaut']/div)[4]")
@@ -160,15 +160,15 @@ func (mess *Message) parse(mb *Mailbox) {
 		log.Print(e)
 	} else {
 		tt, _ := w.Text()
-		mess.received, _ = time.Parse(YopTimeFormat, tt)
+		m.received, _ = time.Parse(YopTimeFormat, tt)
 	}
 
 	w, _ = we.FindElement(selenium.ByXPATH, ".//div[@id='mailmillieu']")
 	if e != nil {
 		log.Print(e)
 	} else {
-		mess.content, _ = w.Text()
-		mess.htmlContent, _ = w.GetAttribute("innerHTML")
+		m.content, _ = w.Text()
+		m.htmlContent, _ = w.GetAttribute("innerHTML")
 	}
 }
 
