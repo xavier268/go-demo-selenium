@@ -14,6 +14,7 @@ import (
 
 // Message contains a single message
 type Message struct {
+	to          string
 	from        string
 	topic       string
 	content     string
@@ -26,17 +27,14 @@ type Message struct {
 func (m *Message) String() string {
 	return fmt.Sprintf(
 		"\nMessage :"+
-			"\n\tfrom       : %v"+
+			"\n\tto         : %v\n\tfrom       : %v"+
 			"\n\ttopic      : %v\n\treceived   : %v"+
 			"\n\tdownloaded : %v\n\turl        : %v"+
 			"\n\tcontent    : %v\n\thtmlContent: %v\n",
-		m.from,
-		m.topic,
-		m.received,
-		m.downloaded,
-		m.url,
-		m.content,
-		m.htmlContent,
+		m.to, m.from,
+		m.topic, m.received,
+		m.downloaded, m.url,
+		m.content, m.htmlContent,
 	)
 }
 
